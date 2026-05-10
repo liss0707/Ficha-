@@ -9,9 +9,6 @@ import anthropic
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger(__name__)
-
-# ═══════════════════════════════════════════════════════════════════
-# CONFIGURAÇÃO — SUBSTITUA OS 3 VALORES ABAIXO
 # ═══════════════════════════════════════════════════════════════════
 TELEGRAM_TOKEN    = "8711474464:AAFTVoDFcfltLxPHrdJbcPQnOnN4WdCNBJM"
 TELEGRAM_CHAT_ID  = "6829669389"
