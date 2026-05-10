@@ -564,3 +564,280 @@ def scheduler_loop():
         # ── Notificação 10 min antes do relatório (05h50 WAT) ─────
         chave_notif_rel = f"notif_rel_{hoje}"
         
+# ═══════════════════════════════════════════════════════════════════
+# MAIN SYSTEM — KEEP WORKER ALWAYS ONLINE
+# ═══════════════════════════════════════════════════════════════════
+
+import os
+import traceback
+
+# Railway ENV support
+TELEGRAM_TOKEN    = os.getenv("TELEGRAM_TOKEN", TELEGRAM_TOKEN)
+TELEGRAM_CHAT_ID  = os.getenv("TELEGRAM_CHAT_ID", TELEGRAM_CHAT_ID)
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", ANTHROPIC_API_KEY)
+
+BASE_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
+
+bot_started_at = time.time()
+
+
+# ── HEARTBEAT ─────────────────────────────────────────────────────
+def heartbeat_loop():
+    while True:
+        try:
+            uptime = int((time.time() - bot_started_at) / 60)
+
+            log.info(f"HEARTBEAT | uptime={uptime}min | fichas={len(fichas_ativas)}")
+
+            time.sleep(300)
+
+        except Exception as e:
+            log.error(f"Heartbeat erro: {e}")
+            time.sleep(30)
+
+
+# ── TELEGRAM COMMAND HANDLER ─────────────────────────────────────
+def process_command(text: str, chat_id):
+
+    cmd = text.lower().strip()
+
+    # START
+    if cmd == "/start":
+        send(
+            "🤖 *VALUE BETTING AI ONLINE*\n\n"
+            "Sistema ativo e monitorando mercados.\n\n"
+            "Comandos:\n"
+            "/status\n"
+            "/fichas\n"
+            "/scan_manha\n"
+            "/scan_tarde\n"
+            "/scan_noite\n"
+            "/relatorio",
+            chat_id
+        )
+
+    # STATUS
+    elif cmd == "/status":
+
+        uptime_h = round((time.time() - bot_started_at) / 3600, 1)
+
+        send(
+            f"🟢 *SISTEMA ONLINE*\n\n"
+            f"⏱️ Uptime: {uptime_h}h\n"
+            f"📋 Fichas ativas: {len(fichas_ativas)}\n"
+            f"🧠 Scanner IA: ativo\n"
+            f"📡 Tracking: ativo\n"
+            f"🔄 Scheduler: ativo",
+            chat_id
+        )
+
+    # FICHAS
+    elif cmd == "/fichas":
+
+        if not fichas_ativas:
+            send("📭 Nenhuma ficha ativa.", chat_id)
+            return
+
+        texto = "📋 *FICHAS ATIVAS*\n\n"
+
+        for f in fichas_ativas:
+
+            green = sum(1 for j in f["jogos"] if j["status"] == "green")
+            red   = sum(1 for j in f["jogos"] if j["status"] == "red")
+
+            texto += (
+                f"#{f['id']} | {f['tipo'].upper()} | "
+                f"{green}✅ {red}❌\n"
+            )
+
+        send(texto, chat_id)
+
+    # RELATORIO
+    elif cmd == "/relatorio":
+        send(format_relatorio(fichas_ativas), chat_id)
+
+    # MANHA
+    elif cmd == "/scan_manha":
+
+        send("📡 Scan MANHA iniciado...", chat_id)
+
+        threading.Thread(
+            target=job_periodo,
+            args=[PERIODOS[0]],
+            daemon=True
+        ).start()
+
+    # TARDE
+    elif cmd == "/scan_tarde":
+
+        send("📡 Scan TARDE iniciado...", chat_id)
+
+        threading.Thread(
+            target=job_periodo,
+            args=[PERIODOS[1]],
+            daemon=True
+        ).start()
+
+    # NOITE
+    elif cmd == "/scan_noite":
+
+        send("📡 Scan NOITE iniciado...", chat_id)
+
+        threading.Thread(
+            target=job_periodo,
+            args=[PERIODOS[2]],
+            daemon=True
+        ).start()
+
+    else:
+        send("❓ Comando desconhecido.", chat_id)
+
+
+# ── TELEGRAM POLLING LOOP ────────────────────────────────────────
+def telegram_polling_loop():
+
+    global last_update_id
+
+    log.info("Telegram polling iniciado")
+
+    while True:
+
+        try:
+
+            updates = get_updates(last_update_id)
+
+            for upd in updates:
+
+                try:
+
+                    last_update_id = upd["update_id"] + 1
+
+                    msg = upd.get("message", {})
+
+                    text = msg.get("text", "")
+
+                    chat_id = msg.get("chat", {}).get("id")
+
+                    if text:
+                        process_command(text, chat_id)
+
+                except Exception as e:
+                    log.error(f"Erro update individual: {e}")
+
+            time.sleep(2)
+
+        except Exception as e:
+
+            log.error(f"Polling erro: {e}")
+
+            traceback.print_exc()
+
+            time.sleep(10)
+
+
+# ── AUTO TRACKING LOOP ───────────────────────────────────────────
+def auto_tracking_loop():
+
+    while True:
+
+        try:
+
+            if fichas_ativas:
+
+                log.info("Auto tracking iniciado")
+
+                job_tracking_update()
+
+            time.sleep(1800)
+
+        except Exception as e:
+
+            log.error(f"Tracking loop erro: {e}")
+
+            time.sleep(60)
+
+
+# ── WATCHDOG ─────────────────────────────────────────────────────
+def watchdog_loop():
+
+    while True:
+
+        try:
+
+            log.info("WATCHDOG OK")
+
+            time.sleep(600)
+
+        except:
+            pass
+
+
+# ── STARTUP ──────────────────────────────────────────────────────
+if __name__ == "__main__":
+
+    log.info("═══════════════════════════════════════")
+    log.info("VALUE BETTING AI BOOTING...")
+    log.info("═══════════════════════════════════════")
+
+    # Validation
+    if not TELEGRAM_TOKEN:
+        raise Exception("TELEGRAM_TOKEN vazio")
+
+    if not TELEGRAM_CHAT_ID:
+        raise Exception("TELEGRAM_CHAT_ID vazio")
+
+    if not ANTHROPIC_API_KEY:
+        raise Exception("ANTHROPIC_API_KEY vazio")
+
+    send("🚀 Bot iniciado com sucesso.")
+
+    # Scheduler
+    threading.Thread(
+        target=scheduler_loop,
+        daemon=True
+    ).start()
+
+    # Telegram polling
+    threading.Thread(
+        target=telegram_polling_loop,
+        daemon=True
+    ).start()
+
+    # Tracking
+    threading.Thread(
+        target=auto_tracking_loop,
+        daemon=True
+    ).start()
+
+    # Heartbeat
+    threading.Thread(
+        target=heartbeat_loop,
+        daemon=True
+    ).start()
+
+    # Watchdog
+    threading.Thread(
+        target=watchdog_loop,
+        daemon=True
+    ).start()
+
+    log.info("Sistema totalmente operacional")
+
+    # KEEP PROCESS ALIVE FOREVER
+    while True:
+
+        try:
+
+            time.sleep(3600)
+
+        except KeyboardInterrupt:
+
+            log.info("Sistema encerrado manualmente")
+
+            break
+
+        except Exception as e:
+
+            log.error(f"Main loop erro: {e}")
+
+            time.sleep(60)
