@@ -9,11 +9,10 @@ import anthropic
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger(__name__)
-# ═══════════════════════════════════════════════════════════════════
+
 TELEGRAM_TOKEN    = "8711474464:AAFTVoDFcfltLxPHrdJbcPQnOnN4WdCNBJM"
 TELEGRAM_CHAT_ID  = "6829669389"
 ANTHROPIC_API_KEY = "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"
-# ═══════════════════════════════════════════════════════════════════
 
 BASE_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
@@ -117,37 +116,42 @@ LIGAS A COBRIR:
 {LIGAS}
 
 ANALISE PROFUNDA OBRIGATORIA para cada jogo:
-1. Odds reais atuais de pelo menos 2 casas (Bet365, Betano, 1xBet, William Hill, Betway, Pinnacle)
+1. Odds reais atuais de pelo menos 2 casas (Bet365, Betano, 1xBet, William Hill, Betway, Pinnacle, Elephantbet, Premierbet, Kwanzabet)
 2. Forma dos ultimos 5 jogos de cada equipa
 3. Historico de confrontos diretos h2h
 4. Media de golos marcados e sofridos (casa e fora separadamente)
 5. Lesoes e suspensoes confirmadas
-6. Posicao na tabela e motivacao
+6. Posicao na tabela e motivacao principalmente 
 7. Value: Value pct = ((probabilidade_real x odd) - 1) x 100
 
 REGRA PRINCIPAL: TODOS os jogos em TODAS as fichas devem ser muito seguros.
+- A ia deve analisar com tudo que for necessário cada jogo 
 - Confianca minima: 78% para qualquer jogo em qualquer ficha
-- Value minimo: 8%
-- So mercados com alta probabilidade: Dupla Hipotese, Over 0.5/1.5, Ambas Marcam quando logico, favorito claro 1X2
+- Value minimo: 10%
+- So mercados com alta probabilidade: Dupla Hipotese, Over 0.5/1.5, Ambas Marcam quando logico, favorito claro 1X2, empate anula
 
 A DIFERENCA ENTRE AS FICHAS E APENAS O NUMERO DE JOGOS:
 
 FICHA CONSERVADORA (3 a 5 jogos):
 - Os MELHORES jogos do dia com confianca acima de 85%
-- Odd total alvo: 5x a 25x
+- Odd total alvo: 7x a 25x
 - Poucos jogos mas maxima certeza
+- Ficha proibida a cair
+- Ficha deve dar green obrigatoriamente 
 
 FICHA MODERADA (6 a 10 jogos):
 - Jogos muito seguros com confianca acima de 80%
 - Odd total alvo: 30x a 100x
 - Equilibrio entre numero de jogos e seguranca
+- Ficha proibida a cair
+- Ficha deve dar green obrigatoriamente 
 
-FICHA AGRESSIVA (15 a 30 jogos):
+FICHA AGRESSIVA (20 a 30 jogos):
 - Jogos seguros com confianca acima de 78%
-- Mercados LEVES: Over 0.5, Dupla Hipotese, favoritos claros
+- Mercados LEVES e SEGUROS: Over 0.5, Dupla Hipotese, favoritos claros
 - Odds individuais baixas (1.10 a 1.45) mas muito provaveis
-- A acumulacao de jogos gera odd total alta (300x a 2000x)
-- Odd total alvo: 300x a 2000x
+- A acumulacao de jogos gera odd total alta (700x a 2000x)
+- Odd total alvo: 700x a 2000x
 
 Responde APENAS JSON valido sem texto extra:
 {{
