@@ -1,3 +1,10 @@
-anthropic>=0.28.0
-openai>=1.30.0
-requests==2.32.3
+python-telegram-bot==20.7
+openai
+anthropic
+requests
+pandas
+numpy
+python-dotenv
+schedule
+flask
+gunicorn
