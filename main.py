@@ -1,4 +1,3 @@
-import os
 import json
 import re
 import time
@@ -11,11 +10,13 @@ import anthropic
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger(__name__)
 
-TELEGRAM_TOKEN    = os.environ["TELEGRAM_TOKEN"]
-TELEGRAM_CHAT_ID  = os.environ["TELEGRAM_CHAT_ID"]
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
-BASE_URL          = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
+# ────────────────────────────
+TELEGRAM_TOKEN    = "8711474464:AAFTVoDFcfltLxPHrdJbcPQnOnN4WdCNBJM"
+TELEGRAM_CHAT_ID  = "6829669389"
+ANTHROPIC_API_KEY = "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"
+# ─────────────────────────────────────────────────────────────────────────────
 
+BASE_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 upcoming_alerts = {}
 last_update_id  = 0
 
@@ -58,7 +59,7 @@ Cobre TODAS as ligas: Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Cha
 
 Para cada jogo:
 1. Pesquisa odds reais (Bet365, Betano, 1xBet, William Hill, Betway, Pinnacle)
-2. Analisa forma recente, h2h, média de golos, lesões, posição na tabela
+2. Analisa forma recente, h2h, media de golos, lesoes, posicao na tabela
 3. Calcula value: Value pct = ((prob real x odd) - 1) x 100
 4. Avalia mercados: 1X2, Over/Under, Ambas Marcam, Handicap
 
@@ -142,7 +143,7 @@ def format_slip(games):
             f"  Forma: `{g.get('form_home','?')}` vs `{g.get('form_away','?')}`\n"
             f"  💰 *{g.get('selection','?')}*\n"
             f"  Odd: *{odd}* ({g.get('bookmaker','?')})\n"
-            f"  {icon} Value: *+{val:.1f}%* | Confiança: {conf}%\n"
+            f"  {icon} Value: *+{val:.1f}%* | Confianca: {conf}%\n"
             f"  📝 _{g.get('reason','')}_\n"
         )
     lines += [
@@ -209,14 +210,7 @@ def job_kickoff_check():
 def handle_command(text, chat_id):
     cmd = text.strip().split()[0].lower()
     if cmd == "/start":
-        send(
-            "⚡ *Value Betting Scanner Ativo!*\n\n"
-            "Estou a funcionar 24/7\n"
-            "Fichas automaticas de 2 em 2 horas\n\n"
-            "📋 *Comandos:*\n"
-            "/scan - Forcar scan agora\n"
-            "/status - Estado do bot\n"
-            "/ajuda - Ajuda", chat_id)
+        send("⚡ *Value Betting Scanner Ativo!*\n\nFichas automaticas de 2 em 2 horas\n\n📋 *Comandos:*\n/scan - Forcar scan agora\n/status - Estado\n/ajuda - Ajuda", chat_id)
     elif cmd == "/scan":
         send("🔍 A iniciar scan... Aguarde 30-60 segundos.", chat_id)
         threading.Thread(target=job_scan, daemon=True).start()
@@ -225,13 +219,7 @@ def handle_command(text, chat_id):
         n   = sum(1 for v in upcoming_alerts.values() if not v["alerted"])
         send(f"✅ *Bot ativo*\n🕐 {now}\nJogos: {len(upcoming_alerts)} | Alertas: {n}", chat_id)
     elif cmd == "/ajuda":
-        send(
-            "📖 *Como funciona:*\n\n"
-            "🔄 Scan de 2 em 2 horas - todas as ligas\n"
-            "📊 IA analisa value com dados reais\n"
-            "🎯 5 melhores jogos com ficha pronta\n"
-            "🚨 Alerta 30 min antes de cada jogo\n\n"
-            "Use /scan para analise imediata!", chat_id)
+        send("📖 *Como funciona:*\n\n🔄 Scan de 2 em 2 horas\n📊 IA analisa value com dados reais\n🎯 5 melhores jogos com ficha pronta\n🚨 Alerta 30 min antes de cada jogo\n\nUse /scan para analise imediata!", chat_id)
 
 
 def scheduler_loop():
@@ -270,7 +258,7 @@ def main():
     log.info("Iniciando Value Betting Scanner Bot...")
     send(
         "🟢 *Value Betting Scanner ONLINE*\n\n"
-        "✅ Bot iniciado e a funcionar 24/7\n"
+        "✅ Bot a funcionar 24/7\n"
         "⏰ Scan automatico de 2 em 2 horas\n"
         "🚨 Alertas 30 min antes dos jogos\n"
         "🌍 Todas as ligas mundiais\n\n"
